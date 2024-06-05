@@ -1,0 +1,33 @@
+The general code logic is if a CSV file exists in the plugin directory with the same name as the plugin then import the variables from the CSV file.  The code snippet would go after any variable setting in the plugin.
+
+1.  Variables in an external CSV file would take precedence over variables set in the plugin.ps1 file and not impact anyone's current environment.  If a CSV file doesn't exist 
+2.  Upgrading becomes much easier.  Variables set in a plugin's PS1 file are lost when a new version of a plugin is copied in.  This method separates the data from the code.
+
+I'll be submitting a PR linked to this issue shortly.
+
+
+Code that will be added to the plugins:
+```
+# Update settings if there is a CSV file with a name matching the plugin ps1 file name.
+if (Test-Path -Path (($MyInvocation).MyCommand.Source).Replace("ps1", "csv")) {
+	Import-Csv (($MyInvocation).MyCommand.Source).Replace("ps1", "csv") | ForEach-Object { Set-Variable -Name $_.Name -Value $_.Value }
+}
+```
+
+Using '10 HA Configuration Issues.ps1' as an example.
+
+Add a CSV file in the same directory as the plugin with the same name as the plugin but with the CSV extension:
+`10 HA Configuration Issues.csv`
+
+Populate the CSV file:
+```
+Name,Value
+ClustersDoNotInclude,"NameOfACluster|SomeOthercluster"
+CLusterHAShouldBeEnabled,$true
+ClusterHAHostMonitoringShouldBeEnabled,$true
+ClusterHAAdmissionControlShouldBeEnabled,$true
+```
+
+
+Add the option to store plugin variables in an external CSV file
+#728 opened 5 minutes ago by monahancj 
